@@ -5,14 +5,22 @@ EXPOSE 3000
 
 WORKDIR /app
 
-ENV NODE_ENV=production
-
+# Copy package files first
 COPY package.json package-lock.json* ./
 
-RUN npm ci --omit=dev && npm cache clean --force
+# Install all dependencies (dev + prod) for building
+RUN npm ci
 
+# Copy source files
 COPY . .
 
+# Build
 RUN npm run build
+
+# Remove dev dependencies for smaller image
+RUN npm prune --production
+
+# Set production env for runtime
+ENV NODE_ENV=production
 
 CMD ["npm", "run", "docker-start"]
